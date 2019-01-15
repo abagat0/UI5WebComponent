@@ -1,0 +1,10 @@
+{
+    "port": 3000,
+    "server": {
+        "baseDir": "webapp",
+        "routes": {
+            "/node_modules": "node_modules",
+            "/resources": "resources"
+        }
+    }
+}

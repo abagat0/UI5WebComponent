@@ -1,0 +1,39 @@
+{
+  "name": "ui5WebComp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Gruntfile.js",
+  "scripts": {
+    "start": "concurrently \"npm run build:watch\" \"npm run serve\"",
+    "serve": "lite-server -c=bs-config.json",
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json -w",
+    "lint": "tslint ./src/**/*.ts -t verbose"
+  },
+  "author": "",
+  "devDependencies": {
+    "@types/es6-shim": "^0.31.39",
+    "@types/jquery": "^3.3.28",
+    "concurrently": "^3.6.1",
+    "grunt": "^1.0.1",
+    "grunt-connect-proxy": "^0.2.0",
+    "grunt-contrib-clean": "^1.1.0",
+    "grunt-contrib-connect": "^1.0.2",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-cssmin": "^2.2.1",
+    "grunt-contrib-uglify": "^3.1.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-encoding": "^0.3.0",
+    "grunt-eslint": "^20.1.0",
+    "grunt-nwabap-ui5uploader": "^0.2.0",
+    "grunt-openui5": "^0.12.0",
+    "grunt-zip": "^0.17.1",
+    "jit-grunt": "^0.10.0",
+    "lite-server": "^2.4.0",
+    "typescript": "^3.2.2"
+  },
+  "dependencies": {
+    "@webcomponents/custom-elements": "^1.2.1",
+    "ui5ts": "^0.3.2"
+  }
+}

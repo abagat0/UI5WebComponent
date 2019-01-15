@@ -1,0 +1,9 @@
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+>
+
+        <Button text="{/message}" type="Transparent" press="handlePress" />
+
+</core:FragmentDefinition>

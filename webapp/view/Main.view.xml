@@ -1,0 +1,38 @@
+
+<mvc:View controllerName="ui5.testApp.controller.Main" xmlns:mvc="sap.ui.core.mvc" 	xmlns:core="sap.ui.core"
+          displayBlock="true" xmlns="sap.m"  xmlns:html="http://www.w3.org/1999/xhtml">
+    <App>
+        <pages>
+            <Page title="{i18n>title}" class="sapUiContentPadding">
+                <content id="appContent">
+                    <Text text="{appView>/test}" />
+                    <IconTabBar
+                            id="idIconTabBarNoIcons"
+                            expanded="{device>/isNoPhone}"
+                            class="sapUiResponsiveContentPadding">
+                        <items>
+                            <IconTabFilter
+                                    text="Info">
+                                <core:ComponentContainer name="ui5.testApp.components.TestComponent"
+                                                         settings="{pro:'{/message}', message: '{/message}', observedAttributes:['message'], shadowDom:'open',
+                                                cssUrl:'components/TestComponent/TestComponent.component.css' , xmlTemplate:'ui5.testApp.components.TestComponent.TestComponent', htmlTag:'test-comp'}"
+                                                         propagateModel="true"/>
+                            </IconTabFilter>
+                            <IconTabFilter
+                                    text="Attachments">
+                               <core:ComponentContainer name="ui5.testApp.components.TestComponent"
+                                                         settings="{pro:'secondComponent', message: '{/message}', observedAttributes:['message'],
+                                                cssUrl:'./TestComponent.component.css', xmlTemplate:'ui5.testApp.components.TestComponent.Test2', htmlTag:'test-comp'}"
+                                                         propagateModel="true"/>
+                            </IconTabFilter>
+
+                        </items>
+                    </IconTabBar>
+
+
+
+                </content>
+            </Page>
+        </pages>
+    </App>
+</mvc:View>
