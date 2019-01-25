@@ -11,7 +11,7 @@
 
       </customControl:Div>
         <customControl:Div slot="testSecond">
-                <Button text="{$this>xmlTemplate}" type="Transparent" press="handlePress" />
+                <Button text="{$this>pro}" type="Transparent" press="handlePress" />
                 <Text text="{/message}" />
         </customControl:Div>
 </customControl:Div>
