@@ -11,6 +11,7 @@
     "description": "Desc App",
     "resources": "resources.json",
     "ach": "ach"
+
   },
 
   "sap.ui": {

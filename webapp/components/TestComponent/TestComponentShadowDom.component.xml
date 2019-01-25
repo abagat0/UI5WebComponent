@@ -1,0 +1,70 @@
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:customControl="ui5.testApp.components.control"
+>
+    <customControl:Div>
+        <Button text="{$this>xmlTemplate}" type="Transparent" press="handlePress" />
+        <Button text="{/message}" type="Transparent" press="handlePress" />
+        <customControl:Slot name="test"></customControl:Slot>
+        <Text text="{/message}" />
+        <customControl:Slot name="testSecond"></customControl:Slot>
+        <Table id="idProductsTable"
+               inset="false"
+               items="{
+			path: '/products'
+
+		}">
+            <headerToolbar>
+                <Toolbar>
+                    <content>
+                        <Title text="Products" level="H2"/>
+                        <ToolbarSpacer />
+                        <ToggleButton id="toggleInfoToolbar"
+                                      text="Hide / Show InfoToolbar"
+                                      press="onToggleInfoToolbar"   />
+                    </content>
+                </Toolbar>
+            </headerToolbar>
+            <infoToolbar>
+                <Toolbar active="ture">
+                    <Label text="Wide range of available products"/>
+                </Toolbar>
+            </infoToolbar>
+            <columns>
+                <Column
+                        width="12em">
+                    <Text text="Product" />
+                </Column>
+                <Column
+                        minScreenWidth="Tablet"
+                        demandPopin="true">
+                    <Text text="Supplier" />
+                </Column>
+                <Column
+                        minScreenWidth="Desktop"
+                        demandPopin="true"
+                        hAlign="End">
+                    <Text text="Dimensions" />
+                </Column>
+
+            </columns>
+            <items>
+                <ColumnListItem>
+                    <cells>
+                        <ObjectIdentifier
+                                title="{Name}"
+                                text="{ProductId}"/>
+                        <Text
+                                text="{SupplierName}" />
+                        <Text
+                                text="{Width} x {Depth} x {Height} {DimUnit}" />
+
+                    </cells>
+                </ColumnListItem>
+            </items>
+        </Table>
+    </customControl:Div>
+
+
+</core:FragmentDefinition>

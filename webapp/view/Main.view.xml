@@ -6,29 +6,23 @@
             <Page title="{i18n>title}" class="sapUiContentPadding">
                 <content id="appContent">
                     <Text text="{appView>/test}" />
-                    <IconTabBar
-                            id="idIconTabBarNoIcons"
-                            expanded="{device>/isNoPhone}"
-                            class="sapUiResponsiveContentPadding">
-                        <items>
-                            <IconTabFilter
-                                    text="Info">
-                                <core:ComponentContainer name="ui5.testApp.components.TestComponent"
+                    <Button text="standard" press="standardPress"/>
+
+                                <core:ComponentContainer name="ui5.testApp.components.TestComponent" usage=""
                                                          settings="{pro:'{/message}', message: '{/message}', observedAttributes:['message'], shadowDom:'open',
-                                                cssUrl:'components/TestComponent/TestComponent.component.css' , xmlTemplate:'ui5.testApp.components.TestComponent.TestComponent', htmlTag:'test-comp'}"
+                                                cssUrl:'components/TestComponent/TestComponent.component.css' ,
+                                                xmlTemplateLightDom:'ui5.testApp.components.TestComponent.TestComponentLightDom',
+                                                xmlTemplateShadowDom:'ui5.testApp.components.TestComponent.TestComponentShadowDom',
+                                                htmlTag:'test-comp'}"
                                                          propagateModel="true"/>
-                            </IconTabFilter>
-                            <IconTabFilter
-                                    text="Attachments">
-                               <core:ComponentContainer name="ui5.testApp.components.TestComponent"
-                                                         settings="{pro:'secondComponent', message: '{/message}', observedAttributes:['message'],
-                                                cssUrl:'./TestComponent.component.css', xmlTemplate:'ui5.testApp.components.TestComponent.Test2', htmlTag:'test-comp'}"
+
+                                <core:ComponentContainer name="ui5.testApp.components.TestComponent" usage=""
+                                                         settings="{pro:'{/message}', message: '{/message}', observedAttributes:['message'],
+                                                cssUrl:'components/TestComponent/TestComponent.component.css' ,
+                                                xmlTemplateLightDom:'ui5.testApp.components.TestComponent.TestComponentLightDom',
+
+                                                htmlTag:'test-comp'}"
                                                          propagateModel="true"/>
-                            </IconTabFilter>
-
-                        </items>
-                    </IconTabBar>
-
 
 
                 </content>

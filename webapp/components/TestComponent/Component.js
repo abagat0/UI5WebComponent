@@ -17,9 +17,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/model/json/JSONModel"], function (require, exports, UIWebComponent_1, JSONModel_1) {
+define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/model/json/JSONModel", "sap/ui/core/Element"], function (require, exports, UIWebComponent_1, JSONModel_1, Element_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    Element_1.default.prototype.getDomRef = function (sSuffix) {
+        var DomRef = (((sSuffix ? this.getId() + "-" + sSuffix : this.getId())) ? window.document.getElementById(sSuffix ? this.getId() + "-" + sSuffix : this.getId()) : null);
+        if (!DomRef && this.getModel("settingsModel")) {
+            var oComponent = sap.ui.getCore().getComponent(this.getModel("settingsModel").oData.compId);
+            if (sSuffix && oComponent.customElement) {
+                DomRef = oComponent.customElement.shadowRoot.querySelector("#" + this.getId() + "-" + sSuffix);
+            }
+            else if (oComponent.customElement) {
+                DomRef = oComponent.customElement.shadowRoot.querySelector("[id*='" + this.getId() + "']");
+            }
+        }
+        return DomRef;
+    };
     var TestComponent = /** @class */ (function (_super) {
         __extends(TestComponent, _super);
         function TestComponent() {
@@ -27,7 +40,54 @@ define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/m
         }
         TestComponent.prototype.init = function () {
             _super.prototype.init.apply(this, arguments);
-            this.setModel(new JSONModel_1.default({ message: "start message" }));
+            var _that = this;
+            var oData = [
+                {
+                    "ProductId": "HT-1000",
+                    "Category": "Laptops",
+                    "MainCategory": "Computer Systems",
+                    "TaxTarifCode": "1",
+                    "SupplierName": "Very Best Screens",
+                    "WeightMeasure": 4.2,
+                    "WeightUnit": "KG",
+                    "Description": "Notebook Basic 15 with 2,80 GHz quad core, 15\" LCD, 4 GB DDR3 RAM, 500 GB Hard Disc, Windows 8 Pro",
+                    "Name": "Notebook Basic 15",
+                    "DateOfSale": "2017-03-26",
+                    "ProductPicUrl": "test-resources/sap/ui/documentation/sdk/images/HT-1000.jpg",
+                    "Status": "Available",
+                    "Quantity": 10,
+                    "UoM": "PC",
+                    "CurrencyCode": "EUR",
+                    "Price": 956,
+                    "Width": 30,
+                    "Depth": 18,
+                    "Height": 3,
+                    "DimUnit": "cm"
+                },
+                {
+                    "ProductId": "HT-1001",
+                    "Category": "Laptops",
+                    "MainCategory": "Computer Systems",
+                    "TaxTarifCode": "1",
+                    "SupplierName": "Very Best Screens",
+                    "WeightMeasure": 4.5,
+                    "WeightUnit": "KG",
+                    "Description": "Notebook Basic 17 with 2,80 GHz quad core, 17\" LCD, 4 GB DDR3 RAM, 500 GB Hard Disc, Windows 8 Pro",
+                    "Name": "Notebook Basic 17",
+                    "DateOfSale": "2017-04-17",
+                    "ProductPicUrl": "test-resources/sap/ui/documentation/sdk/images/HT-1001.jpg",
+                    "Status": "Available",
+                    "Quantity": 20,
+                    "UoM": "PC",
+                    "CurrencyCode": "EUR",
+                    "Price": 1249,
+                    "Width": 29,
+                    "Depth": 17,
+                    "Height": 3.1,
+                    "DimUnit": "cm"
+                }
+            ];
+            this.setModel(new JSONModel_1.default({ message: "start message", compID: _that.getId(), products: oData }));
         };
         // custom properties setters
         TestComponent.prototype.setPro = function (pro) {
@@ -46,57 +106,101 @@ define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/m
         };
         // custom element can de defined / attached only when we have access to properties, that's why we cannot do it in init method
         TestComponent.prototype.onBeforeRendering = function () {
-            if (!this.oContent) {
-                this.renderContent();
-            }
-            // tbd run html file with UI5 controls
-            if (!this.customElement && this.oContent) {
-                //attach all models to fragment that you want to use
-                this.oContent.setModel(this.getModel());
-                // copy/attach css
-                var cssLinks = "";
-                if (this.getProperty("shadowDom")) {
-                    cssLinks = this.copyCurentSAPCss();
-                }
-                cssLinks += this.getComponentCustomCssLink();
-                // create html template that will be custom element initialization
-                this.template = document.createElement('template');
-                this.template.innerHTML = cssLinks + "\n                     <div></div>\n                     <slot name=\"test\"></slot>                 \n                     <slot name=\"secondTest\"></slot>\n                     <div>last</div>\n                  ";
-                // finally create custom element
-                this.setCustomElement(this.getProperty("htmlTag"), this.getProperty("observedAttributes"), this.template, this.getProperty("shadowDom"));
+            if (!this.customElement) {
+                //  create custom element
+                this.setCustomElement();
             }
         };
         TestComponent.prototype.connectedCallback = function (element) {
-            var slot = element.shadowRoot.querySelector('slot');
-            slot.addEventListener('slotchange', function (e) {
-                console.log('light dom children changed!');
-            });
+            if (element.shadowRoot) {
+                var events = [
+                    "click",
+                    "dblclick",
+                    "contextmenu",
+                    "focusin",
+                    "focusout",
+                    "keydown",
+                    "keypress",
+                    "keyup",
+                    "mousedown",
+                    "mouseout",
+                    "mouseover",
+                    "mouseup",
+                    "select",
+                    "selectstart",
+                    "dragstart",
+                    "dragenter",
+                    "dragover",
+                    "dragleave",
+                    "dragend",
+                    "drop",
+                    "paste",
+                    "cut",
+                    /* input event is fired synchronously on IE9+ when the value of an <input> or <textarea> element is changed */
+                    /* for more details please see : https://developer.mozilla.org/en-US/docs/Web/Reference/Events/input */
+                    "input"
+                ];
+                jQuery(element.shadowRoot.querySelector("div")).bind("click", element.context.handleEvents);
+                var slot = element.shadowRoot.querySelector('slot');
+                if (slot) {
+                    slot.addEventListener('slotchange', function (e) {
+                        console.log('light dom children changed!');
+                    });
+                }
+            }
+        };
+        TestComponent.prototype.disconnectedCallback = function (element) {
+            if (element.shadowRoot) {
+                jQuery(element.shadowRoot.querySelector("div")).unbind("click", element.context.unbindEvents);
+            }
+        };
+        TestComponent.prototype.handleEvents = function (oEvent) {
+            var control = jQuery(oEvent.target).control(0);
+            if (control && control.getModel("settingsModel") && control.mEventRegistry["press"]
+                && (control.getProperty("enabled") === undefined || control.getProperty("enabled") === true)) {
+                control.firePress();
+            }
+        };
+        TestComponent.prototype.unbindEvents = function (oEvent) {
+            console.log(oEvent);
         };
         // hander for pressing button on xml template
         TestComponent.prototype.handlePress = function (oEvent) {
-            this.getModel().setProperty("/message", "changed");
+            this.getModel().setProperty("/message", "changed" + new Date().getTime());
+            this.getModel().updateBindings();
+            this.setProperty("xmlTemplateLightDom", "changed" + new Date().getTime());
+        };
+        TestComponent.prototype.onToggleInfoToolbar = function (oEvent) {
+            var oTable = this.byId("idProductsTable");
+            oTable.getInfoToolbar().setProperty("visible", !oTable.getInfoToolbar().getProperty("visible"));
         };
         TestComponent.prototype.render = function (oRenderManager) {
-            // convenience variable
             var oRM = oRenderManager;
             var oComponent = this;
             oRM.write("<div ");
             oRM.write(oComponent.getId());
             oRM.writeClasses();
-            oRM.write("><");
+            oRM.write(">");
+            oRM.write("<");
             // call custom element tag
             oRM.write(oComponent.getProperty("htmlTag"));
             // change propeties to attributes
             oComponent.writeProperties(oRM);
             // pass componentId, it's very important, without that custom element and component cannot find/update each other
             oRM.writeAttribute("componentId", oComponent.getId());
-            // pass resolver to begining template (if it was sth declared), if there were slots then call slot=' slot name ' to navigate browser where place it
-            oRM.write("><div slot='test' >" +
-                oRM.getHTML(oComponent.oContent) +
-                "</div><div slot='secondTest'>second</div></" +
-                // close custom element tag
+            oRM.write(">");
+            // check if aggregation has chilren
+            if (this.getAggregation("lightDom") && this.getAggregation("lightDom").getItems() && Array.isArray(this.getAggregation("lightDom").getItems())) {
+                this.getAggregation("lightDom").getItems().map(function (oControl) {
+                    oRM.write(oRM.getHTML(oControl));
+                });
+            }
+            else if (this.getAggregation("lightDom")) {
+                oRM.write(oRM.getHTML(this.getAggregation("lightDom")));
+            }
+            oRM.write("<" +
                 oComponent.getProperty("htmlTag") +
-                "></div></div>");
+                "></div>");
         };
         ;
         // defining custom properties, in the end will be joined with those from UIWebComponent class

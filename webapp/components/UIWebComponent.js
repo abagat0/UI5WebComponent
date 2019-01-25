@@ -17,7 +17,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define(["require", "exports", "sap/ui/core/UIComponent", "sap/ui/core/XMLTemplateProcessor"], function (require, exports, UIComponent_1, XMLTemplateProcessor_1) {
+define(["require", "exports", "sap/ui/core/UIComponent", "sap/ui/core/XMLTemplateProcessor", "sap/ui/model/json/JSONModel", "sap/ui/model/base/ManagedObjectModel", "sap/ui/core/Fragment"], function (require, exports, UIComponent_1, XMLTemplateProcessor_1, JSONModel_1, ManagedObjectModel_1, Fragment_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var UIWebComponent = /** @class */ (function (_super) {
@@ -27,7 +27,7 @@ define(["require", "exports", "sap/ui/core/UIComponent", "sap/ui/core/XMLTemplat
         }
         // this array contains properties that will not be assigned as attributes in html representation
         UIWebComponent.prototype.init = function () {
-            this.specialSettings = ['observedAttributes', 'cssUrl', 'xmlTemplate', 'shadowDom', "htmlTag"];
+            this.specialSettings = ['observedAttributes', 'cssUrl', 'shadowDom', "htmlTag", "xmlTemplateShadowDom", "xmlTemplateLightDom"];
         };
         //setters for properties
         UIWebComponent.prototype.setObservedAttributes = function (obsAttr) {
@@ -50,28 +50,15 @@ define(["require", "exports", "sap/ui/core/UIComponent", "sap/ui/core/XMLTemplat
             this.setProperty("htmlTag", htmlTag);
             return this;
         };
-        // render content from component.xml template, models are copied automatically to content
-        UIWebComponent.prototype.renderContent = function () {
-            try {
-                var oFragmentContent = XMLTemplateProcessor_1.default.loadTemplate(this.getProperty("xmlTemplate"), "component");
-                this.oContent = sap.ui.xmlfragment({
-                    sId: this.getId(),
-                    fragmentContent: oFragmentContent,
-                    oController: this
-                });
-            }
-            catch (_a) {
-                throw "Cannot render content";
-            }
-        };
         // copy current loaded css links from ui5 config to custom element shadow dom
         UIWebComponent.prototype.copyCurentSAPCss = function () {
             var loadedLibraries = Object.keys(sap.ui.getCore().getLoadedLibraries());
             var cssLinks = '';
             loadedLibraries.map(function (library) {
                 cssLinks += '<link rel="stylesheet" type="text/css" href="' +
-                    jQuery.sap.getResourcePath(library.replace(/\./g, "/")) +
-                    '/themes/' +
+                    jQuery.sap.getResourcePath(library.replace(/\./g, "/"))
+                    +
+                        '/themes/' +
                     sap.ui.getCore().getConfiguration().getTheme() + '/library.css">';
             });
             return cssLinks;
@@ -99,31 +86,148 @@ define(["require", "exports", "sap/ui/core/UIComponent", "sap/ui/core/XMLTemplat
                 }
             });
         };
+        UIWebComponent.prototype._initCompositeSupport = function (mSettings) {
+            if (mSettings.xmlTemplateLightDom) {
+                var oFragmentContent = XMLTemplateProcessor_1.default.loadTemplate(mSettings.xmlTemplateLightDom, "component");
+                this._destroyCompositeAggregation("lightDom");
+                var oFragmentLight = sap.ui.xmlfragment({
+                    sId: this.getId(),
+                    fragmentContent: oFragmentContent,
+                    oController: this
+                });
+                this._setCompositeAggregation(oFragmentLight, "lightDom");
+            }
+            if (mSettings.xmlTemplateShadowDom && mSettings.shadowDom) {
+                var oFragmentContentShadow = XMLTemplateProcessor_1.default.loadTemplate(mSettings.xmlTemplateShadowDom, "component");
+                this._destroyCompositeAggregation("shadowDom");
+                var oFragmentShadow = sap.ui.xmlfragment({
+                    sId: this.getId(),
+                    fragmentContent: oFragmentContentShadow,
+                    oController: this
+                });
+                var _that = this;
+                oFragmentShadow.setModel(new JSONModel_1.default({ "compId": _that.getId() }), "settingsModel");
+                this._setCompositeAggregation(oFragmentShadow, "shadowDom");
+            }
+        };
+        ;
+        UIWebComponent.prototype._setCompositeAggregation = function (oNewContent, sCompositeName) {
+            if (sCompositeName) {
+                this._destroyCompositeAggregation(sCompositeName);
+                if (!this._oManagedObjectModel) {
+                    this._getManagedObjectModel();
+                }
+                if (Array.isArray(oNewContent)) {
+                    this.setAggregation(sCompositeName, null);
+                    return;
+                }
+                if (oNewContent) {
+                    //accessibility
+                    if (!oNewContent.enhanceAccessibilityState) {
+                        oNewContent.enhanceAccessibilityState = function (oElement, mAriaProps) {
+                            this.enhanceAccessibilityState(oElement, mAriaProps);
+                        }.bind(this);
+                    }
+                    oNewContent.bindObject("$this>/"); //first define the context
+                    oNewContent.setModel(this._oManagedObjectModel, "$this"); //then set the model
+                    // var oResourceModel = this._getResourceModel();
+                    /// if (oResourceModel) {
+                    //    oNewContent.setModel(oResourceModel, "$" + this.alias + ".i18n");
+                    //}
+                }
+                this.setAggregation(sCompositeName, oNewContent);
+            }
+        };
+        ;
+        UIWebComponent.prototype._getCompositeAggregation = function (sCompositeName) {
+            return this.getAggregation(sCompositeName);
+        };
+        ;
+        UIWebComponent.prototype.updateAggregation = function (sName, bSuppressInvalidate) {
+            var oAggregation = this.getMetadata().getAggregation(sName);
+            if (oAggregation && oAggregation.type === "TemplateMetadataContext") {
+                this.invalidate();
+                return;
+            }
+            this.updateAggregation.apply(this, arguments);
+        };
+        ;
+        UIWebComponent.prototype._destroyCompositeAggregation = function (sCompositeName) {
+            var oContent = this._getCompositeAggregation(sCompositeName);
+            if (oContent) {
+                oContent.destroy("KeepDom");
+            }
+            return this;
+        };
+        ;
+        UIWebComponent.prototype.updateBindings = function () {
+            var oResult = UIComponent_1.default.prototype.updateBindings.apply(this, arguments);
+            for (var n in this.mBindingInfos) {
+                var oAggregation = this.getMetadata().getAggregation(n);
+                if (oAggregation &&
+                    oAggregation.multiple &&
+                    !oAggregation._doesNotRequireFactory &&
+                    this.isBound(n) &&
+                    !this.getBinding(n)) {
+                    this[oAggregation._sDestructor]();
+                }
+            }
+            return oResult;
+        };
+        ;
+        UIWebComponent.prototype.enhanceAccessibilityState = function (oElement, mAriaProps) {
+            var oParent = this.getParent();
+            if (oParent && oParent.enhanceAccessibilityState) {
+                // use XMLComposite as control, but aria properties of rendered inner controls.
+                return oParent.enhanceAccessibilityState(this, mAriaProps);
+            }
+            return mAriaProps;
+        };
+        ;
+        UIWebComponent.prototype._getManagedObjectModel = function () {
+            if (!this._oManagedObjectModel) {
+                this._oManagedObjectModel = new ManagedObjectModel_1.default(this);
+            }
+            return this._oManagedObjectModel;
+        };
+        ;
+        UIWebComponent.prototype.byId = function (sId) {
+            return sap.ui.getCore().byId(Fragment_1.default.createId(this.getId(), sId));
+        };
+        ;
         // create custom element class, in case already defined attach html instance by component id
-        UIWebComponent.prototype.setCustomElement = function (customElTag, obsAttr, template, shadowDom) {
+        UIWebComponent.prototype.setCustomElement = function () {
             var _this = this;
             var UI5CustomElement = /** @class */ (function (_super) {
                 __extends(UI5CustomElement, _super);
                 function UI5CustomElement() {
                     var _this = _super.call(this) || this;
                     _this.context = sap.ui.getCore().getComponent(_this.getAttribute("componentId"));
-                    _this.setTemplate(template);
-                    if (shadowDom) {
-                        _this.setShadowDom(shadowDom);
+                    if (_this.context) {
+                        _this.cssLinks = _this.context.copyCurentSAPCss();
+                        _this.cssLinks += _this.context.getComponentCustomCssLink();
+                        _this.setTemplate();
+                        if (_this.context.getProperty("shadowDom")) {
+                            _this.setShadowDom(_this.context.getProperty("shadowDom"));
+                        }
+                    }
+                    else {
+                        // id comp id is not attached as attribute, do not create element
+                        _this.parentNode.removeChild(_this);
                     }
                     return _this;
                 }
-                UI5CustomElement.prototype.setTemplate = function (template) {
+                UI5CustomElement.prototype.setTemplate = function () {
                     this.template = document.createElement('template');
-                    this.template.innerHTML = "<slot></slot>";
-                    if (template) {
-                        this.template = template;
-                    }
+                    this.template.innerHTML = this.cssLinks + "<slot></slot>";
                 };
                 UI5CustomElement.prototype.setShadowDom = function (shadowDom) {
                     this.attachShadow({ mode: shadowDom });
-                    if (this.template) {
+                    if (this.template && this.context && this.context.getAggregation("shadowDom")) {
+                        var oRM = sap.ui.getCore().createRenderManager();
+                        this.template.innerHTML = this.cssLinks + oRM.getHTML(this.context.getAggregation("shadowDom"));
                         this.shadowRoot.appendChild(this.template.content.cloneNode(true));
+                        oRM.destroy();
                     }
                 };
                 UI5CustomElement.prototype.attributeChangedCallback = function (name, oldValue, newValue) {
@@ -133,7 +237,7 @@ define(["require", "exports", "sap/ui/core/UIComponent", "sap/ui/core/XMLTemplat
                 };
                 Object.defineProperty(UI5CustomElement, "observedAttributes", {
                     get: function () {
-                        return obsAttr;
+                        return this.context ? this.context.getProperty("observedAttributes") : [];
                     },
                     enumerable: true,
                     configurable: true
@@ -157,13 +261,13 @@ define(["require", "exports", "sap/ui/core/UIComponent", "sap/ui/core/XMLTemplat
             }(HTMLElement));
             // define custom element in browser
             try {
-                customElements.define(customElTag, UI5CustomElement);
+                customElements.define(this.getProperty("htmlTag"), UI5CustomElement);
             }
             catch (_a) {
             }
             // attach html instance to current ui5 component
-            customElements.whenDefined(customElTag).then(function () {
-                var allInstances = Array.from(document.querySelectorAll(customElTag));
+            customElements.whenDefined(this.getProperty("htmlTag")).then(function () {
+                var allInstances = Array.from(document.querySelectorAll(_this.getProperty("htmlTag")));
                 allInstances.map(function (item) {
                     if (item.getAttribute("componentId") === _this.getId()) {
                         _this.customElement = item;
@@ -175,9 +279,23 @@ define(["require", "exports", "sap/ui/core/UIComponent", "sap/ui/core/XMLTemplat
             properties: {
                 observedAttributes: { type: "Array", defaultValue: [] },
                 cssUrl: { type: "string", defaultValue: null },
-                xmlTemplate: { type: "string", defaultValue: null },
+                xmlTemplateLightDom: { type: "string", defaultValue: null },
+                xmlTemplateShadowDom: { type: "string", defaultValue: null },
                 shadowDom: { type: "string", defaultValue: null },
                 htmlTag: { type: "string", defaultValue: null }
+            },
+            aggregations: {
+                lightDom: {
+                    type: "sap.ui.core.Control", multiple: false,
+                    visibility: "public",
+                    invalidate: true
+                },
+                shadowDom: {
+                    type: "sap.ui.core.Control", multiple: false,
+                    visibility: "public",
+                    invalidate: true
+                },
+                app: { type: "sap.ui.core.Control", visibility: "public" }
             }
         };
         UIWebComponent = __decorate([

@@ -17,33 +17,24 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define(["require", "exports", "./BaseController", "sap/ui/model/json/JSONModel"], function (require, exports, BaseController_1, JSONModel_1) {
+define(["require", "exports", "sap/ui/core/Control"], function (require, exports, Control_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var MainController = /** @class */ (function (_super) {
-        __extends(MainController, _super);
-        function MainController() {
+    var Slot = /** @class */ (function (_super) {
+        __extends(Slot, _super);
+        function Slot() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        MainController.prototype.onInit = function () {
-            var oViewModel;
-            oViewModel = new JSONModel_1.default({
-                busy: true,
-                delay: 0,
-                test: "kkk"
-            });
-            this.setModel(oViewModel, "appView");
+        Slot.metadata = {
+            properties: {
+                name: { type: "string", defaultValue: null },
+            }
         };
-        MainController.prototype.standardPress = function (oEvent) {
-            this.getModel("appView").setProperty("/test", "changed");
-            console.log(oEvent.getSource().getEventingParent());
-            console.log(oEvent.getSource().getUIArea());
-        };
-        MainController = __decorate([
-            UI5("ui5.testApp.controller.Main")
-        ], MainController);
-        return MainController;
-    }(BaseController_1.default));
-    exports.default = MainController;
+        Slot = __decorate([
+            UI5("ui5.testApp.components.control.Slot")
+        ], Slot);
+        return Slot;
+    }(Control_1.default));
+    exports.default = Slot;
 });
-//# sourceMappingURL=Main.controller.js.map
+//# sourceMappingURL=Slot.js.map

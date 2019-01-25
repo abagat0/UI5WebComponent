@@ -16,4 +16,10 @@ export default class MainController extends BaseController {
 
     }
 
+    public standardPress(oEvent):void{
+        this.getModel("appView").setProperty("/test", "changed")
+        console.log(oEvent.getSource().getEventingParent())
+        console.log(oEvent.getSource().getUIArea())
+    }
+
 }

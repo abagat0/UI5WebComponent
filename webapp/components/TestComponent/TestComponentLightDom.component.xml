@@ -1,0 +1,19 @@
+<core:FragmentDefinition
+        xmlns="sap.m"
+        xmlns:core="sap.ui.core"
+        xmlns:customControl="ui5.testApp.components.control"
+>
+<customControl:Div>
+      <customControl:Div slot="test">
+              <Button text="{/message}" type="Transparent" press="handlePress" />
+              <Button text="{/message}" type="Transparent" press="handlePress" />
+              <Text text="light" />
+
+      </customControl:Div>
+        <customControl:Div slot="testSecond">
+                <Button text="{$this>xmlTemplate}" type="Transparent" press="handlePress" />
+                <Text text="{/message}" />
+        </customControl:Div>
+</customControl:Div>
+
+</core:FragmentDefinition>
