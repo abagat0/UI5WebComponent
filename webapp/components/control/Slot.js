@@ -25,6 +25,9 @@ define(["require", "exports", "sap/ui/core/Control"], function (require, exports
         function Slot() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        Slot.prototype.getName = function () {
+            return this.getProperty("name");
+        };
         Slot.metadata = {
             properties: {
                 name: { type: "string", defaultValue: null },

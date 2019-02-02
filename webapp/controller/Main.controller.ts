@@ -11,15 +11,14 @@ export default class MainController extends BaseController {
             busy: true,
             delay: 0,
             test:"kkk"
-        });
+        }, false);
         this.setModel(oViewModel, "appView");
 
     }
 
-    public standardPress(oEvent):void{
-        this.getModel("appView").setProperty("/test", "changed")
-        console.log(oEvent.getSource().getEventingParent())
-        console.log(oEvent.getSource().getUIArea())
+    public standardPress(oEvent: sap.ui.base.Event):void{
+        const oModel: JSONModel =  <JSONModel> this.getModel("appView");
+        oModel.setProperty("/test", "changed")
     }
 
 }

@@ -4,7 +4,7 @@ define(["require", "exports", "sap/ui/model/json/JSONModel", "sap/ui/Device"], f
     exports.default = {
         createDeviceModel: function () {
             //TODO|ui5ts: generate constructors
-            var oModel = new JSONModel_1.default(Device_1.default);
+            var oModel = new JSONModel_1.default(Device_1.default, false);
             oModel.setDefaultBindingMode(sap.ui.model.BindingMode.OneWay);
             return oModel;
         }

@@ -12,7 +12,7 @@
         <Table id="idProductsTable"
                inset="false"
                items="{
-			path: '/products'
+			path: 'tableList>/Objects'
 
 		}">
             <headerToolbar>
@@ -34,12 +34,12 @@
             <columns>
                 <Column
                         width="12em">
-                    <Text text="Product" />
+                    <Text text="Name" />
                 </Column>
                 <Column
                         minScreenWidth="Tablet"
                         demandPopin="true">
-                    <Text text="Supplier" />
+                    <Text text="UnitNumber" />
                 </Column>
                 <Column
                         minScreenWidth="Desktop"
@@ -54,9 +54,9 @@
                     <cells>
                         <ObjectIdentifier
                                 title="{Name}"
-                                text="{ProductId}"/>
+                                text="{UnitNumber}"/>
                         <Text
-                                text="{SupplierName}" />
+                                text="{UnitOfMeasure}" />
                         <Text
                                 text="{Width} x {Depth} x {Height} {DimUnit}" />
 

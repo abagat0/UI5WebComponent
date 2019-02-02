@@ -6,11 +6,11 @@
             <Page title="{i18n>title}" class="sapUiContentPadding">
                 <content id="appContent">
                     <Text text="{appView>/test}" />
-                    <Button text="standard" press="standardPress"/>
+                    <Button text="standard" press="standardPress" id="standardButton"/>
 
                                 <core:ComponentContainer name="ui5.testApp.components.TestComponent" usage=""
                                                          settings="{pro:'{/message}', message: '{/message}', observedAttributes:['message'], shadowDom:'open',
-                                                cssUrl:'components/TestComponent/TestComponent.component.css' ,
+                                                cssUrl:'/components/TestComponent/TestComponent.component.css' ,
                                                 xmlTemplateLightDom:'ui5.testApp.components.TestComponent.TestComponentLightDom',
                                                 xmlTemplateShadowDom:'ui5.testApp.components.TestComponent.TestComponentShadowDom',
                                                 htmlTag:'test-comp'}"
@@ -18,7 +18,7 @@
 
                                 <core:ComponentContainer name="ui5.testApp.components.TestComponent" usage=""
                                                          settings="{pro:'{/message}', message: '{/message}', observedAttributes:['message'],
-                                                cssUrl:'components/TestComponent/TestComponent.component.css' ,
+                                                cssUrl:'/components/TestComponent/TestComponent.component.css' ,
                                                 xmlTemplateLightDom:'ui5.testApp.components.TestComponent.TestComponentLightDom',
 
                                                 htmlTag:'test-comp'}"

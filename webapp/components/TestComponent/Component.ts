@@ -2,16 +2,17 @@ import UIWebComponent from "ui5/testApp/components/UIWebComponent";
 import JSONModel from "sap/ui/model/json/JSONModel";
 import RenderManager from "sap/ui/core/RenderManager";
 import Element from "sap/ui/core/Element";
-import Core from "sap/ui/core/Core"
-
+import UI5CustomElementInterface from "ui5/testApp/types/UI5CustomElementInterface"
+// @ts-ignore
 Element.prototype.getDomRef = function (sSuffix) {
     let DomRef = (((sSuffix ? this.getId() + "-" + sSuffix : this.getId())) ? window.document.getElementById(sSuffix ? this.getId() + "-" + sSuffix : this.getId()) : null);
     if (!DomRef && this.getModel("settingsModel")) {
-        let oComponent = sap.ui.getCore().getComponent(this.getModel("settingsModel").oData.compId);
-        if (sSuffix && oComponent.customElement) {
-            DomRef = oComponent.customElement.shadowRoot.querySelector("#" + this.getId() + "-" + sSuffix);
-        } else if (oComponent.customElement) {
-            DomRef = oComponent.customElement.shadowRoot.querySelector("[id*='" + this.getId() + "']");
+        const oComponent=  <UIWebComponent> sap.ui.getCore().getComponent(this.getModel("settingsModel").getProperty("/compId"));
+        const customElement = oComponent.customElement;
+        if (sSuffix && customElement && customElement.shadowRoot) {
+            DomRef = customElement.shadowRoot.querySelector("#" + this.getId() + "-" + sSuffix);
+        } else if (customElement && customElement.shadowRoot) {
+            DomRef =  customElement.shadowRoot.querySelector("[id*='" + this.getId() + "']");
         }
     }
     return DomRef;
@@ -30,8 +31,8 @@ export default class TestComponent extends UIWebComponent {
 
     public init(): void {
         super.init.apply(this, arguments);
-        const _that = this;
-        const oData = [
+        const _that:TestComponent = this;
+        const oData:Array<object> = [
             {
                 "ProductId": "HT-1000",
                 "Category": "Laptops",
@@ -77,7 +78,8 @@ export default class TestComponent extends UIWebComponent {
                 "DimUnit": "cm"
             }]
 
-        this.setModel(new JSONModel({message: "start message", compID: _that.getId(), products: oData}))
+        let oModel:JSONModel = new JSONModel({message: "start message", compID: _that.getId(), products: oData}, false)
+        this.setModel(oModel)
 
     }
 
@@ -102,14 +104,11 @@ export default class TestComponent extends UIWebComponent {
     // custom element can de defined / attached only when we have access to properties, that's why we cannot do it in init method
     public onBeforeRendering(): void {
         if (!this.customElement) {
-            //  create custom element
-
-
             this.setCustomElement();
         }
     }
 
-    public connectedCallback(element: object): void {
+    public connectedCallback(element: UI5CustomElementInterface): void {
 
         if (element.shadowRoot) {
             let events = [
@@ -140,11 +139,13 @@ export default class TestComponent extends UIWebComponent {
                 "input"
             ];
 
-            jQuery(element.shadowRoot.querySelector("div")).bind("click", element.context.handleEvents)
+            const htmlElment:string = <any>element.shadowRoot.querySelector("div") || "";
+            jQuery(htmlElment).bind("click", element.context.handleEvents)
 
-            const slot = element.shadowRoot.querySelector('slot');
+
+            const slot:HTMLSlotElement | null = element.shadowRoot.querySelector('slot');
             if (slot) {
-                slot.addEventListener('slotchange', e => {
+                slot.addEventListener('slotchange', (e:Event) => {
                     console.log('light dom children changed!');
 
                 });
@@ -152,40 +153,45 @@ export default class TestComponent extends UIWebComponent {
         }
     }
 
-    public disconnectedCallback(element:HTMLElement):void{
+    public disconnectedCallback(element: UI5CustomElementInterface):void{
         if(element.shadowRoot){
-            jQuery(element.shadowRoot.querySelector("div")).unbind("click", element.context.unbindEvents)
+            const htmlElement:string = <any>element.shadowRoot.querySelector("div") || "";
+            jQuery(htmlElement).unbind("click", element.context.unbindEvents)
         }
     }
 
-    public handleEvents(oEvent:object):void {
-        const control = jQuery(oEvent.target).control(0);
+    public handleEvents(oEvent: Event):void {
+        if(oEvent.target) {
+            const event = <any>jQuery(oEvent.target);
 
-        if (control && control.getModel("settingsModel") && control.mEventRegistry["press"]
-           && (control.getProperty("enabled") === undefined || control.getProperty("enabled")===true)) {
-            control.firePress();
+            if (event.control(0) && event.control(0).getModel("settingsModel") && event.control(0).mEventRegistry["press"]
+                && (event.control(0).getProperty("enabled") === undefined || event.control(0).getProperty("enabled") === true)) {
+                event.control(0).firePress();
+            }
         }
     }
 
-    public unbindEvents(oEvent: object): void{
+    public unbindEvents(oEvent: Event): void{
         console.log(oEvent)
     }
 
     // hander for pressing button on xml template
-    public handlePress(oEvent: object): void {
-        this.getModel().setProperty("/message", "changed" + new Date().getTime());
-        this.getModel().updateBindings();
+    public handlePress(oEvent: sap.ui.base.Event): void {
+        const oModel:JSONModel = <JSONModel> this.getModel();
+        oModel.setProperty("/message", "changed" + new Date().getTime());
+        oModel.updateBindings(true);
         this.setProperty("xmlTemplateLightDom", "changed" + new Date().getTime())
     }
 
-    public onToggleInfoToolbar(oEvent) {
-        var oTable = this.byId("idProductsTable");
-        oTable.getInfoToolbar().setProperty("visible", !oTable.getInfoToolbar().getProperty("visible"));
+    public onToggleInfoToolbar(oEvent:sap.ui.base.Event) {
+        const oTable:sap.m.Table = <sap.m.Table>this.byId("idProductsTable");
+        const oToolbar:sap.m.Toolbar = oTable.getInfoToolbar();
+        (<any>oToolbar).setProperty("visible", !(<any>oToolbar).getProperty("visible"));
     }
 
     public render(oRenderManager: RenderManager): void {
-        const oRM = oRenderManager;
-        const oComponent = this;
+        const oRM: RenderManager = oRenderManager;
+        const oComponent: TestComponent = this;
         oRM.write("<div ");
         oRM.write(oComponent.getId())
         oRM.writeClasses();
@@ -200,12 +206,13 @@ export default class TestComponent extends UIWebComponent {
         oRM.writeAttribute("componentId", oComponent.getId())
         oRM.write(">")
         // check if aggregation has chilren
-        if (this.getAggregation("lightDom") && this.getAggregation("lightDom").getItems() && Array.isArray(this.getAggregation("lightDom").getItems()){
-            this.getAggregation("lightDom").getItems().map((oControl) => {
+        const oAggregation:sap.ui.core.Control | [] = <any>this.getAggregation("lightDom", []);
+        if (oAggregation && !Array.isArray(oAggregation) &&  (<any>oAggregation).getItems && Array.isArray((<any>oAggregation).getItems())){
+            (<any>oAggregation).getItems().map((oControl: sap.ui.core.Control) => {
                 oRM.write(oRM.getHTML(oControl))
             })
-        } else if (this.getAggregation("lightDom")) {
-            oRM.write(oRM.getHTML(this.getAggregation("lightDom")))
+        } else if (!Array.isArray(oAggregation)) {
+            oRM.write(oRM.getHTML(oAggregation))
         }
         oRM.write("<" +
             oComponent.getProperty("htmlTag") +

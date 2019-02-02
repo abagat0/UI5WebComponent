@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Unit tests for UI5WebComponent</title>
+        <meta http-equiv='X-UA-Compatible' content='IE=edge'/>
+        <meta charset="UTF-8">
+
+        <script id="sap-ui-bootstrap"
+            src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+            data-sap-ui-libs="sap.m"
+            data-sap-ui-resourceroots='{
+                "ui5.testApp": "../",
+                "test/unit": "./"
+            }'>
+        </script>
+
+        <!-- Convert typescript generated modules/classes into ui5 modules/classes -->
+        <script type="text/javascript" src="/node_modules/ui5ts/ui5ts.js"></script>
+        <script type="text/javascript" src="/node_modules/@webcomponents/custom-elements/src/native-shim.js"></script>
+        <script src="https://sapui5.hana.ondemand.com/resources/sap/ui/qunit/qunit-css.js"></script>
+        <script src="https://sapui5.hana.ondemand.com/resources/sap/ui/thirdparty/qunit.js"></script>
+        <script src="https://sapui5.hana.ondemand.com/resources/sap/ui/qunit/qunit-junit.js"></script>
+        <script src="https://sapui5.hana.ondemand.com/resources/sap/ui/qunit/qunit-coverage.js"></script>
+        <script>
+            jQuery.sap.require("ui5.testApp.test.AllQUnit");
+        </script>
+
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <div id="qunit-fixture"></div>
+    </body>
+</html>

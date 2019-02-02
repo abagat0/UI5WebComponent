@@ -25,6 +25,9 @@ define(["require", "exports", "sap/m/FlexBox"], function (require, exports, Flex
         function Div() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        Div.prototype.getSlot = function () {
+            return this.getProperty("slot");
+        };
         Div.metadata = {
             properties: {
                 slot: { type: "string", defaultValue: null },

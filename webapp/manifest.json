@@ -10,8 +10,17 @@
     "title": "Test App",
     "description": "Desc App",
     "resources": "resources.json",
-    "ach": "ach"
-
+    "ach": "ach",
+    "dataSources": {
+      "mainService": {
+        "uri": "/here/goes/your/serviceUrl/",
+        "type": "OData",
+        "settings": {
+          "odataVersion": "2.0",
+          "localUri": "localService/metadata.xml"
+        }
+      }
+    }
   },
 
   "sap.ui": {
@@ -61,6 +70,10 @@
         "settings": {
           "bundleName": "ui5.testApp.i18n.i18n"
         }
+      },
+      "tableList": {
+        "dataSource": "mainService",
+        "preload": true
       }
     },
     "routing": {

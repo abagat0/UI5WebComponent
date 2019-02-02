@@ -35,7 +35,7 @@ define(["require", "exports", "sap/ui/base/Object", "sap/m/MessageBox"], functio
             //TODO|ui5ts: check how to convert T|Promise<T> into T
             _this._oResourceBundle = _this._oResourceModel.getResourceBundle();
             _this._oComponent = oComponent;
-            _this._oModel = oComponent.getModel();
+            _this._oModel = oComponent.getModel("tableList");
             _this._bMessageOpen = false;
             _this._sErrorText = _this._oResourceBundle.getText("errorText");
             _this._oModel.attachMetadataFailed(function (oEvent) {

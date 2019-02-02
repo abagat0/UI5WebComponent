@@ -21,11 +21,11 @@ export default class ErrorHandler extends UI5Object
      */
     public constructor(oComponent: MyUIComponent) {
         super();
-        this._oResourceModel = oComponent.getModel("i18n");
+        this._oResourceModel = <sap.ui.model.resource.ResourceModel> oComponent.getModel("i18n");
         //TODO|ui5ts: check how to convert T|Promise<T> into T
         this._oResourceBundle = <any>this._oResourceModel.getResourceBundle();
-        this._oComponent = oComponent;
-        this._oModel = oComponent.getModel();
+        this._oComponent = <MyUIComponent> oComponent;
+        this._oModel = <sap.ui.model.odata.v2.ODataModel> oComponent.getModel("tableList");
         this._bMessageOpen = false;
         this._sErrorText = this._oResourceBundle.getText("errorText");
 
@@ -56,12 +56,13 @@ export default class ErrorHandler extends UI5Object
             return;
         }
         this._bMessageOpen = true;
+
         MessageBox.error(
             this._sErrorText,
             {
                 id : "serviceErrorMessageBox",
                 details : sDetails,
-                styleClass : this._oComponent.getContentDensityClass(),
+                styleClass :this._oComponent.getContentDensityClass(),
                 actions : [MessageBox.Action.CLOSE],
                 onClose : () => {
                     this._bMessageOpen = false;

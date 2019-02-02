@@ -31,13 +31,12 @@ define(["require", "exports", "./BaseController", "sap/ui/model/json/JSONModel"]
                 busy: true,
                 delay: 0,
                 test: "kkk"
-            });
+            }, false);
             this.setModel(oViewModel, "appView");
         };
         MainController.prototype.standardPress = function (oEvent) {
-            this.getModel("appView").setProperty("/test", "changed");
-            console.log(oEvent.getSource().getEventingParent());
-            console.log(oEvent.getSource().getUIArea());
+            var oModel = this.getModel("appView");
+            oModel.setProperty("/test", "changed");
         };
         MainController = __decorate([
             UI5("ui5.testApp.controller.Main")

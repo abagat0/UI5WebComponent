@@ -9,5 +9,8 @@ export default class Slot  extends Control{
             name: {type: "string", defaultValue: null},
         }
     };
+    public getName():string{
+        return this.getProperty("name")
+    }
 
 }

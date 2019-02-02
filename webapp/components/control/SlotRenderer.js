@@ -20,6 +20,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define(["require", "exports", "sap/ui/core/Renderer"], function (require, exports, Renderer_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var oRenderer = Renderer_1.default.extend("ui5.testApp.components.control.DivRenderer");
     var SlotRenderer = /** @class */ (function (_super) {
         __extends(SlotRenderer, _super);
         function SlotRenderer() {
@@ -35,7 +36,7 @@ define(["require", "exports", "sap/ui/core/Renderer"], function (require, export
             UI5("ui5.testApp.components.control.SlotRenderer")
         ], SlotRenderer);
         return SlotRenderer;
-    }(Renderer_1.default));
+    }(oRenderer));
     exports.default = SlotRenderer;
 });
 //# sourceMappingURL=SlotRenderer.js.map

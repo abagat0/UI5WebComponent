@@ -1,4 +1,5 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
     "target": "es5",
     "module": "amd",
@@ -8,6 +9,7 @@
     "strictNullChecks": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
+    "skipLibCheck": true,
     "sourceMap": true,
     "baseUrl": "./",
     "paths": {
@@ -27,6 +29,7 @@
   "exclude": [
     "node_modules",
     "resources",
-    "**/*.spec.ts"
+    "webapp/test/**"
+
   ]
 }

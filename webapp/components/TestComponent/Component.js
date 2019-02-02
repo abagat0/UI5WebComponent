@@ -20,15 +20,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/model/json/JSONModel", "sap/ui/core/Element"], function (require, exports, UIWebComponent_1, JSONModel_1, Element_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    // @ts-ignore
     Element_1.default.prototype.getDomRef = function (sSuffix) {
         var DomRef = (((sSuffix ? this.getId() + "-" + sSuffix : this.getId())) ? window.document.getElementById(sSuffix ? this.getId() + "-" + sSuffix : this.getId()) : null);
         if (!DomRef && this.getModel("settingsModel")) {
-            var oComponent = sap.ui.getCore().getComponent(this.getModel("settingsModel").oData.compId);
-            if (sSuffix && oComponent.customElement) {
-                DomRef = oComponent.customElement.shadowRoot.querySelector("#" + this.getId() + "-" + sSuffix);
+            var oComponent = sap.ui.getCore().getComponent(this.getModel("settingsModel").getProperty("/compId"));
+            var customElement = oComponent.customElement;
+            if (sSuffix && customElement && customElement.shadowRoot) {
+                DomRef = customElement.shadowRoot.querySelector("#" + this.getId() + "-" + sSuffix);
             }
-            else if (oComponent.customElement) {
-                DomRef = oComponent.customElement.shadowRoot.querySelector("[id*='" + this.getId() + "']");
+            else if (customElement && customElement.shadowRoot) {
+                DomRef = customElement.shadowRoot.querySelector("[id*='" + this.getId() + "']");
             }
         }
         return DomRef;
@@ -87,7 +89,8 @@ define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/m
                     "DimUnit": "cm"
                 }
             ];
-            this.setModel(new JSONModel_1.default({ message: "start message", compID: _that.getId(), products: oData }));
+            var oModel = new JSONModel_1.default({ message: "start message", compID: _that.getId(), products: oData }, false);
+            this.setModel(oModel);
         };
         // custom properties setters
         TestComponent.prototype.setPro = function (pro) {
@@ -107,7 +110,6 @@ define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/m
         // custom element can de defined / attached only when we have access to properties, that's why we cannot do it in init method
         TestComponent.prototype.onBeforeRendering = function () {
             if (!this.customElement) {
-                //  create custom element
                 this.setCustomElement();
             }
         };
@@ -140,7 +142,8 @@ define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/m
                     /* for more details please see : https://developer.mozilla.org/en-US/docs/Web/Reference/Events/input */
                     "input"
                 ];
-                jQuery(element.shadowRoot.querySelector("div")).bind("click", element.context.handleEvents);
+                var htmlElment = element.shadowRoot.querySelector("div") || "";
+                jQuery(htmlElment).bind("click", element.context.handleEvents);
                 var slot = element.shadowRoot.querySelector('slot');
                 if (slot) {
                     slot.addEventListener('slotchange', function (e) {
@@ -151,14 +154,17 @@ define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/m
         };
         TestComponent.prototype.disconnectedCallback = function (element) {
             if (element.shadowRoot) {
-                jQuery(element.shadowRoot.querySelector("div")).unbind("click", element.context.unbindEvents);
+                var htmlElement = element.shadowRoot.querySelector("div") || "";
+                jQuery(htmlElement).unbind("click", element.context.unbindEvents);
             }
         };
         TestComponent.prototype.handleEvents = function (oEvent) {
-            var control = jQuery(oEvent.target).control(0);
-            if (control && control.getModel("settingsModel") && control.mEventRegistry["press"]
-                && (control.getProperty("enabled") === undefined || control.getProperty("enabled") === true)) {
-                control.firePress();
+            if (oEvent.target) {
+                var event_1 = jQuery(oEvent.target);
+                if (event_1.control(0) && event_1.control(0).getModel("settingsModel") && event_1.control(0).mEventRegistry["press"]
+                    && (event_1.control(0).getProperty("enabled") === undefined || event_1.control(0).getProperty("enabled") === true)) {
+                    event_1.control(0).firePress();
+                }
             }
         };
         TestComponent.prototype.unbindEvents = function (oEvent) {
@@ -166,13 +172,15 @@ define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/m
         };
         // hander for pressing button on xml template
         TestComponent.prototype.handlePress = function (oEvent) {
-            this.getModel().setProperty("/message", "changed" + new Date().getTime());
-            this.getModel().updateBindings();
+            var oModel = this.getModel();
+            oModel.setProperty("/message", "changed" + new Date().getTime());
+            oModel.updateBindings(true);
             this.setProperty("xmlTemplateLightDom", "changed" + new Date().getTime());
         };
         TestComponent.prototype.onToggleInfoToolbar = function (oEvent) {
             var oTable = this.byId("idProductsTable");
-            oTable.getInfoToolbar().setProperty("visible", !oTable.getInfoToolbar().getProperty("visible"));
+            var oToolbar = oTable.getInfoToolbar();
+            oToolbar.setProperty("visible", !oToolbar.getProperty("visible"));
         };
         TestComponent.prototype.render = function (oRenderManager) {
             var oRM = oRenderManager;
@@ -190,13 +198,14 @@ define(["require", "exports", "ui5/testApp/components/UIWebComponent", "sap/ui/m
             oRM.writeAttribute("componentId", oComponent.getId());
             oRM.write(">");
             // check if aggregation has chilren
-            if (this.getAggregation("lightDom") && this.getAggregation("lightDom").getItems() && Array.isArray(this.getAggregation("lightDom").getItems())) {
-                this.getAggregation("lightDom").getItems().map(function (oControl) {
+            var oAggregation = this.getAggregation("lightDom", []);
+            if (oAggregation && !Array.isArray(oAggregation) && oAggregation.getItems && Array.isArray(oAggregation.getItems())) {
+                oAggregation.getItems().map(function (oControl) {
                     oRM.write(oRM.getHTML(oControl));
                 });
             }
-            else if (this.getAggregation("lightDom")) {
-                oRM.write(oRM.getHTML(this.getAggregation("lightDom")));
+            else if (!Array.isArray(oAggregation)) {
+                oRM.write(oRM.getHTML(oAggregation));
             }
             oRM.write("<" +
                 oComponent.getProperty("htmlTag") +

@@ -1,14 +1,17 @@
 import UIComponent from "sap/ui/core/UIComponent";
-import XMLTemplateProcessor from "sap/ui/core/XMLTemplateProcessor";
 import RenderManager from "sap/ui/core/RenderManager";
 import JSONModel from "sap/ui/model/json/JSONModel";
-import ManagedObjectModel from "sap/ui/model/base/ManagedObjectModel"
-import Fragment from "sap/ui/core/Fragment"
+import UIWebComponentInterface from "ui5/testApp/types/UIWebComponentInterface";
+// @ts-ignore
+import  ManagedObjectModel from "sap/ui//model/base/ManagedObjectModel";
+import UI5CustomElementInterface from "ui5/testApp/types/UI5CustomElementInterface";
 
 @UI5("ui5.testApp.components.UIWebComponent")
 export default class UIWebComponent extends UIComponent {
-    customElement: HTMLElement;
+    customElement: UI5CustomElementInterface;
     specialSettings: Array<string>;
+    _oManagedObjectModel: ManagedObjectModel
+    mProperties: object;
 
     public static metadata: any = {
         properties: {
@@ -46,6 +49,9 @@ export default class UIWebComponent extends UIComponent {
     }
 
     public setCssUrl(url: string): object {
+        if(/test\//.test(window.location.pathname)) {
+            url = "../" + url
+        }
         this.setProperty("cssUrl", url);
         return this;
     }
@@ -67,16 +73,13 @@ export default class UIWebComponent extends UIComponent {
 
     // copy current loaded css links from ui5 config to custom element shadow dom
     public copyCurentSAPCss(): string {
-        const loadedLibraries = Object.keys(sap.ui.getCore().getLoadedLibraries());
-        let cssLinks = '';
+        const loadedLibraries: Array<string> = Object.keys(sap.ui.getCore().getLoadedLibraries());
+        let cssLinks:string = '';
         loadedLibraries.map((library: string) => {
             cssLinks += '<link rel="stylesheet" type="text/css" href="' +
-                jQuery.sap.getResourcePath(library.replace(/\./g\ ,
-            "/"
-        ))
-            +
-                '/themes/' +
-            sap.ui.getCore().getConfiguration().getTheme() + '/library.css">'
+                jQuery.sap.getResourcePath(library.replace(/\./g, "/"))
+                + '/themes/' +
+                sap.ui.getCore().getConfiguration().getTheme() + '/library.css">'
         })
         return cssLinks;
     }
@@ -98,22 +101,24 @@ export default class UIWebComponent extends UIComponent {
 
     // changing properties to custom element attributes, will be assigned only those that aren't in special settings array
     public writeProperties(oRM: RenderManager): void {
-        const properties: Array<string> = Object.keys(this.mProperties);
+        const prop: sap.ui.base.ManagedObject = <sap.ui.base.ManagedObject> this.mProperties;
+        const properties: Array<string> = Object.keys(prop);
 
         properties.map((property: string) => {
                 if (this.specialSettings.indexOf(property) === -1) {
-                    oRM.writeAttribute(property, this.mProperties[property])
+                    oRM.writeAttribute(property, this.getProperty(property))
                 }
             }
         )
     }
 
-    public _initCompositeSupport(mSettings:object):void {
-        if (mSettings.xmlTemplateLightDom) {
-            const oFragmentContent = XMLTemplateProcessor.loadTemplate(mSettings.xmlTemplateLightDom, "component");
+    public _initCompositeSupport(mSettings: object): void {
+        if (mSettings.hasOwnProperty("xmlTemplateLightDom")) {
+            const core:any = <any>sap.ui.core;
+            const oFragmentContent:sap.ui.core.Fragment = core.XMLTemplateProcessor.loadTemplate((<any>mSettings)["xmlTemplateLightDom"], "component");
             this._destroyCompositeAggregation("lightDom");
 
-            let oFragmentLight = sap.ui.xmlfragment({
+            const oFragmentLight: sap.ui.core.Control | sap.ui.core.Control[] = sap.ui.xmlfragment({
                 sId: this.getId(),
                 fragmentContent: oFragmentContent,
                 oController: this
@@ -121,22 +126,23 @@ export default class UIWebComponent extends UIComponent {
             this._setCompositeAggregation(oFragmentLight, "lightDom");
         }
 
-        if (mSettings.xmlTemplateShadowDom && mSettings.shadowDom) {
-            const oFragmentContentShadow = XMLTemplateProcessor.loadTemplate(mSettings.xmlTemplateShadowDom, "component");
+        if (mSettings.hasOwnProperty("xmlTemplateShadowDom") && mSettings.hasOwnProperty("shadowDom")) {
+            const core:any = <any>sap.ui.core;
+            const oFragmentContentShadow:sap.ui.core.Fragment = core.XMLTemplateProcessor.loadTemplate((<any>mSettings)["xmlTemplateShadowDom"], "component");
 
             this._destroyCompositeAggregation("shadowDom");
-            let oFragmentShadow = sap.ui.xmlfragment({
+            let oFragmentShadow: sap.ui.core.Control = <any>sap.ui.xmlfragment({
                 sId: this.getId(),
                 fragmentContent: oFragmentContentShadow,
                 oController: this
             })
-            const _that = this;
-            oFragmentShadow.setModel(new JSONModel({"compId": _that.getId()}), "settingsModel");
+            const _that:UIWebComponent = this;
+            oFragmentShadow.setModel(new JSONModel({"compId": _that.getId()}, false), "settingsModel");
             this._setCompositeAggregation(oFragmentShadow, "shadowDom");
         }
     };
 
-    public _setCompositeAggregation(oNewContent:object, sCompositeName:string):void {
+    public _setCompositeAggregation(oNewContent: any, sCompositeName: string): void {
 
         if (sCompositeName) {
             this._destroyCompositeAggregation(sCompositeName);
@@ -150,9 +156,9 @@ export default class UIWebComponent extends UIComponent {
             if (oNewContent) {
                 //accessibility
                 if (!oNewContent.enhanceAccessibilityState) {
-                    oNewContent.enhanceAccessibilityState = function (oElement, mAriaProps) {
+                    oNewContent.enhanceAccessibilityState = (oElement: Element, mAriaProps: object) => {
                         this.enhanceAccessibilityState(oElement, mAriaProps);
-                    }.bind(this);
+                    };
                 }
                 oNewContent.bindObject("$this>/");//first define the context
                 oNewContent.setModel(this._oManagedObjectModel, "$this");//then set the model
@@ -165,14 +171,14 @@ export default class UIWebComponent extends UIComponent {
         }
     };
 
-    public _getCompositeAggregation(sCompositeName:string):object {
-        return this.getAggregation(sCompositeName);
+    public _getCompositeAggregation(sCompositeName: string): object {
+        return this.getAggregation(sCompositeName, []);
     };
 
 
-    public updateAggregation(sName:string, bSuppressInvalidate:boolean):void {
-        var oAggregation = this.getMetadata().getAggregation(sName);
-        if (oAggregation && oAggregation.type === "TemplateMetadataContext") {
+    public updateAggregation(sName: string): void {
+        const oAggregation:sap.ui.core.Control = <any>this.getAggregation(sName, new sap.ui.core.Control());
+        if (oAggregation && !Array.isArray(oAggregation) && (<any>oAggregation)["type"] === "TemplateMetadataContext") {
             this.invalidate();
             return;
         }
@@ -180,134 +186,122 @@ export default class UIWebComponent extends UIComponent {
     };
 
 
-    public _destroyCompositeAggregation(sCompositeName:string):object {
-        var oContent = this._getCompositeAggregation(sCompositeName);
-        if (oContent) {
-            oContent.destroy("KeepDom");
+    public _destroyCompositeAggregation(sCompositeName: string): object {
+        const oContent:sap.ui.core.Control = <any>this._getCompositeAggregation(sCompositeName);
+        if (oContent && !Array.isArray(oContent)) {
+            (<any>oContent).destroy("KeepDom");
         }
         return this;
     };
 
-    public updateBindings():object{
-        var oResult = UIComponent.prototype.updateBindings.apply(this, arguments);
-        for (var n in this.mBindingInfos) {
-            var oAggregation = this.getMetadata().getAggregation(n);
-            if (oAggregation &&
-                oAggregation.multiple &&
-                !oAggregation._doesNotRequireFactory &&
-                this.isBound(n) &&
-                !this.getBinding(n)) {
-                this[oAggregation._sDestructor]();
-            }
-        }
-        return oResult;
-    };
 
-    public enhanceAccessibilityState(oElement: Element, mAriaProps:object):object {
-        var oParent = this.getParent();
+    public enhanceAccessibilityState(oElement: Element, mAriaProps: object): object {
 
-        if (oParent && oParent.enhanceAccessibilityState) {
+        if (this.getParent() && (<any>this.getParent()).enhanceAccessibilityState) {
             // use XMLComposite as control, but aria properties of rendered inner controls.
-            return oParent.enhanceAccessibilityState(this, mAriaProps);
+            return (<any>this.getParent()).enhanceAccessibilityState(this, mAriaProps);
         }
 
         return mAriaProps;
     };
 
-    public _getManagedObjectModel():ManagedObjectModel  {
+    public _getManagedObjectModel(): ManagedObjectModel {
         if (!this._oManagedObjectModel) {
             this._oManagedObjectModel = new ManagedObjectModel(this);
         }
         return this._oManagedObjectModel;
     };
 
-    public byId (sId:string):object {
-        return sap.ui.getCore().byId(Fragment.createId(this.getId(), sId));
-    };
+     public byId (sId:string):any {
+         return sap.ui.getCore().byId(sap.ui.core.Fragment.createId(this.getId(), sId));
+     };
 
 
     // create custom element class, in case already defined attach html instance by component id
     public setCustomElement(): void {
+        let oComponent:UIWebComponent = this;
+         class UI5CustomElement extends HTMLElement {
+            template: HTMLTemplateElement;
+            context: UIWebComponentInterface;
+            shadowRoot: ShadowRoot;
+            cssLinks: string;
 
-            class UI5CustomElement extends HTMLElement {
-                template: object;
-                context: object;
-                shadowRoot: any;
-                cssLinks:string;
-
-                constructor() {
-                    super();
-                    this.context = sap.ui.getCore().getComponent(this.getAttribute("componentId"));
-
-                    if (this.context) {
-                        this.cssLinks = this.context.copyCurentSAPCss();
-                        this.cssLinks += this.context.getComponentCustomCssLink();
-                        this.setTemplate();
-                        if (this.context.getProperty("shadowDom")) {
-                            this.setShadowDom(this.context.getProperty("shadowDom"))
-                        }
-                    }else{
-                        // id comp id is not attached as attribute, do not create element
-                        this.parentNode.removeChild(this)
+            constructor() {
+                super();
+                const compId: string = this.getAttribute("componentId") || "";
+                this.context = <any> sap.ui.getCore().getComponent(compId);
+                if (this.context) {
+                    this.cssLinks = this.context.copyCurentSAPCss();
+                    this.cssLinks += this.context.getComponentCustomCssLink();
+                    this.setTemplate();
+                    if (this.context.getProperty("shadowDom")) {
+                        this.setShadowDom(this.context.getProperty("shadowDom"))
                     }
-
+                } else if (this.parentNode) {
+                    // id comp id is not attached as attribute, do not create element
+                    this.parentNode.removeChild(this)
                 }
 
-                setTemplate(): void {
-                    this.template = document.createElement('template');
-                    this.template.innerHTML = this.cssLinks+`<slot></slot>`
-                }
+            }
 
-                setShadowDom(shadowDom: string): void {
-                    this.attachShadow({mode: shadowDom});
-                    if (this.template && this.context && this.context.getAggregation("shadowDom")) {
-                        const oRM = sap.ui.getCore().createRenderManager();
-                        this.template.innerHTML = this.cssLinks + oRM.getHTML(this.context.getAggregation("shadowDom"));
-                        this.shadowRoot.appendChild(this.template.content.cloneNode(true));
-                        oRM.destroy();
+            setTemplate(): void {
+                this.template = document.createElement('template');
+                this.template.innerHTML = this.cssLinks + `<slot></slot>`
+            }
+
+            setShadowDom(shadowDom: "open" | "closed"): void {
+                this.attachShadow({mode: shadowDom});
+                if (this.template && this.context && this.context.getAggregation("shadowDom", [])) {
+                    const oRM = sap.ui.getCore().createRenderManager();
+                    const oAggregation = this.context.getAggregation("shadowDom", []);
+                    if (oAggregation && !Array.isArray(oAggregation)) {
+                        this.template.innerHTML = this.cssLinks + oRM.getHTML(<sap.ui.core.Control> oAggregation);
                     }
-                }
-
-                attributeChangedCallback(name, oldValue, newValue): void {
-                    if (this.context && this.context.attributeChangedCallback) {
-                        this.context.attributeChangedCallback(name, oldValue, newValue)
-                    }
-                }
-
-                static get observedAttributes(): Array<string> {
-                    return this.context ? this.context.getProperty("observedAttributes") : [];
-                }
-
-
-                connectedCallback(): void {
-                    if (this.context && this.context.connectedCallback) {
-                        this.context.connectedCallback(this)
-                    }
-                }
-
-                disconnectedCallback(): void {
-                    if (this.context && this.context.disconnectedCallback) {
-                        this.context.disconnectedCallback(this)
-                    }
-                }
-
-                adoptedCallback(): void {
-                    if (this.context && this.context.adoptedCallback) {
-                        this.context.adoptedCallback(this)
-                    }
+                    this.shadowRoot.appendChild(this.template.content.cloneNode(true));
+                    oRM.destroy();
                 }
             }
 
-            // define custom element in browser
-            try {
-                customElements.define(this.getProperty("htmlTag"), UI5CustomElement);
-            } catch {
+            attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+                if (this.context && this.context.attributeChangedCallback) {
+                    this.context.attributeChangedCallback(name, oldValue, newValue)
+                }
             }
+
+            static get observedAttributes(): Array<string> {
+                return oComponent.getProperty("observedAttributes") ? oComponent.getProperty("observedAttributes") : [];
+            }
+
+
+            connectedCallback(): void {
+                if (this.context && this.context.connectedCallback) {
+                    this.context.connectedCallback(this)
+                }
+            }
+
+            disconnectedCallback(): void {
+                if (this.context && this.context.disconnectedCallback) {
+                    this.context.disconnectedCallback(this)
+                }
+            }
+
+            adoptedCallback(): void {
+                if (this.context && this.context.adoptedCallback) {
+                    this.context.adoptedCallback(this)
+                }
+            }
+        }
+
+        // define custom element in browser
+        try {
+            customElements.define(this.getProperty("htmlTag"), UI5CustomElement);
+        } catch {
+        }
 
         // attach html instance to current ui5 component
         customElements.whenDefined(this.getProperty("htmlTag")).then(() => {
-            let allInstances: Array<HTMLElement> = Array.from(document.querySelectorAll(this.getProperty("htmlTag")));
-            allInstances.map((item: HTMLElement) => {
+            const allInstances: Array<HTMLElement> = Array.from(document.querySelectorAll(this.getProperty("htmlTag")));
+            allInstances.map((item: UI5CustomElementInterface) => {
                 if (item.getAttribute("componentId") === this.getId()) {
                     this.customElement = item;
                 }
@@ -317,3 +311,4 @@ export default class UIWebComponent extends UIComponent {
 
     }
 }
+
