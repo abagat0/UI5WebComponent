@@ -15,8 +15,11 @@ Table of Contents:
 10. Slots and templates
 11. “slotschange” event handler
 12. Creating Custom Events, SAP EventBus, Component Events
-13. And finally how to test – QUnit and OPA5 tests
-14. To be continue – roadmap with this project
+13. And finally how to test – QUnit and OPA5 tests in spec files
+
+
+SAP blog post:
+https://blogs.sap.com/2019/01/16/ui5-and-webcomponents-working-together/
 
 All documentation can be find here:
 
@@ -25,6 +28,7 @@ https://developers.google.com/web/fundamentals/web-components/
 https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements
 
 https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
+
 
 
 Typescript example with ui5ts package:
